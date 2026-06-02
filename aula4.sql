@@ -71,7 +71,7 @@ WHERE E.codEsp IS NULL
 
 --completar o bd com as demais tabelas
 CREATE TABLE Pacientes(
-    codPac INT PRIMARY KEY IDENTITY(1,1)
+    codPac INT PRIMARY KEY IDENTITY(1,1),
     nome VARCHAR(40),
     fone VARCHAR(30)
 )
