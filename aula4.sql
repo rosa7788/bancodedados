@@ -69,6 +69,29 @@ INNER JOIN Especialidade AS E
 ON M.codEsp = E.codEsp
 WHERE E.codEsp IS NULL
 
+--completar o bd com as demais tabelas
+CREATE TABLE Pacientes(
+    codPac INT PRIMARY KEY IDENTITY(1,1)
+    nome VARCHAR(40),
+    fone VARCHAR(30)
+)
+CREATE TABLE Consultas(
+    codCon INT PRIMARY KEY IDENTITY(1,1), --PK COM AUTONUMERACAO
+    data date,
+    codMed INT FOREIGN KEY REFERENCES Medicos(codMed) NOT NULL, --campo obrigatorio
+    codPac INT FOREIGN KEY REFERENCES Pacientes(codPac) NOT NULL --campo obrigatorio
+)
+
+--recuperar todas as consultas feitas com pediatras em maio/2026
+SELECT M.nome AS nomeMedico, C.data, P.nome AS nomePaciente
+FROM Medico AS M INNER JOIN Consulta AS C
+ON M.codMed = C.codMed
+INNER JOIN Paciente AS P
+ON P.codPac = C.codPac
+WHERE C.data >= '2026/05/02' AND C.data <= '2026/05/31'
+AND
+E.nome = 'PEDIATRA'
+
 
 
 
