@@ -137,7 +137,7 @@ FROM medicos AS M INNER JOIN especialidades AS E
 ON M.codEsp = E.codEsp;
 
 --7)Liste os medicos que nao tem especialidades
-SELECT nome, codEsp 
+SELECT nome, codEsp
 FROM medicos
 WHERE codEsp is null;
 
