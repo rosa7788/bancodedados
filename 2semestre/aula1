@@ -48,6 +48,27 @@ VALUES ('CELULAR', 850, 5)
 ALTER TABLE produto
 DROP COLUMN codBarras
 
+SELECT descricao, estoque
+FROM produto
+ORDER BY estoqye DESC
+
+ALTER TABLE produto
+ADD preco MONEY
+
+DELETE produto
+WHERE codCat IN(1,3,5)
+
+UPDATE produto SET preco = 1.99
+WHERE codPro = 1
+
+SELECT P.descricao, C.nomeCat
+FROM produto AS P LEFT JOIN categoria AS C
+                ON P.codCat = C.codCat
+WHERE P.codCat IS NULL
+
+UPDATE produto SET preco = preco * 1.05
+WHERE estoque < 400
+
 
 
     
