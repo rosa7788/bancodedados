@@ -120,7 +120,7 @@ GO
 
 -- Alterando o nome do veterinário de código 3
 UPDATE Veterinario
-SET Nome = 'Seu Nome Aqui'
+SET Nome = 'Rosa'
 WHERE CodMed = 3;
 GO
 
