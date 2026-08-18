@@ -1,5 +1,8 @@
 CREATE DATABASE Hotel;
+GO
+
 USE Hotel;
+GO
 
 
 CREATE TABLE Hospede (
@@ -8,6 +11,7 @@ CREATE TABLE Hospede (
     Sexo CHAR(1) NOT NULL,
     Idade INT
 );
+GO
 
 
 CREATE TABLE Quarto (
@@ -16,7 +20,7 @@ CREATE TABLE Quarto (
     Numero INT NOT NULL,
     Andar INT NOT NULL
 );
-
+GO
 
 
 CREATE TABLE Refeicao (
@@ -24,7 +28,7 @@ CREATE TABLE Refeicao (
     DescRefeicao VARCHAR(100) NOT NULL,
     Valor DECIMAL(10,2) NOT NULL
 );
-
+GO
 
 
 CREATE TABLE Reserva (
@@ -47,6 +51,8 @@ CREATE TABLE Reserva (
         FOREIGN KEY (CodConsumo)
         REFERENCES Refeicao(CodConsumo)
 );
+GO
+
 
 CREATE TABLE Pagamento (
     CodPagto INT IDENTITY(1,1) PRIMARY KEY,
@@ -58,14 +64,18 @@ CREATE TABLE Pagamento (
         FOREIGN KEY (CodReserva)
         REFERENCES Reserva(CodReserva)
 );
+GO
 
- INSERT INTO Quarto (Tipo, Numero, Andar)
+
+INSERT INTO Quarto (Tipo, Numero, Andar)
 VALUES
 ('Standard', 101, 1),
 ('Superior', 202, 2),
 ('Superior Master', 301, 3),
 ('Superior Master', 402, 4),
 ('Luxo', 501, 5);
+GO
+
 
 INSERT INTO Hospede (Nome, Sexo, Idade)
 VALUES
@@ -77,6 +87,8 @@ VALUES
 ('Juliana Costa', 'F', 38),
 ('Lucas Pereira', 'M', 29),
 ('Fernanda Lima', 'F', 45);
+GO
+
 
 INSERT INTO Refeicao (DescRefeicao, Valor)
 VALUES
@@ -86,6 +98,8 @@ VALUES
 ('Lanche', 20.00),
 ('Café especial', 30.00),
 ('Jantar especial', 80.00);
+GO
+
 
 INSERT INTO Reserva (DtEntrada, DtSaida, CodHospede, CodQuarto, CodConsumo)
 VALUES
@@ -93,22 +107,34 @@ VALUES
 ('2025-01-10', '2025-01-15', 2, 2, 2),
 ('2026-02-10', '2026-02-17', 3, 4, 3),
 ('2026-02-20', '2026-02-23', 4, 5, 4);
+GO
 
- SELECT COUNT(*) AS Quantidade
+
+SELECT COUNT(*) AS Quantidade
 FROM Quarto
 WHERE Tipo = 'Superior Master';
+GO
+
 
 SELECT AVG(Valor) AS ValorMedio
 FROM Refeicao;
+GO
+
 
 ALTER TABLE Hospede
 DROP COLUMN Idade;
+GO
+
 
 ALTER TABLE Hospede
 ADD DtNascimento DATE;
+GO
 
- SELECT COUNT(DISTINCT CodHospede) AS QuantidadeHospedes
+
+SELECT COUNT(DISTINCT CodHospede) AS QuantidadeHospedes
 FROM Reserva;
+GO
+
 
 SELECT 
     H.Nome,
@@ -116,38 +142,49 @@ SELECT
 FROM Hospede H
 INNER JOIN Reserva R
     ON H.CodHospede = R.CodHospede;
+GO
+
 
 UPDATE Hospede
 SET DtNascimento = '1990-05-15'
 WHERE CodHospede = 1;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '1997-08-20'
 WHERE CodHospede = 2;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '1983-03-10'
 WHERE CodHospede = 3;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '1994-11-25'
 WHERE CodHospede = 4;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '2000-01-12'
 WHERE CodHospede = 5;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '1987-06-30'
 WHERE CodHospede = 6;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '1996-09-18'
 WHERE CodHospede = 7;
+GO
 
 UPDATE Hospede
 SET DtNascimento = '1981-12-05'
 WHERE CodHospede = 8;
+GO
+
 
 SELECT
     H.Nome,
@@ -157,6 +194,8 @@ INNER JOIN Reserva R
     ON H.CodHospede = R.CodHospede
 WHERE R.DtEntrada < '2025-01-01'
 ORDER BY H.Nome ASC;
+GO
+
 
 SELECT DISTINCT
     H.Nome
@@ -167,6 +206,8 @@ INNER JOIN Quarto Q
     ON R.CodQuarto = Q.CodQuarto
 WHERE H.Sexo = 'F'
   AND Q.Andar = 4;
+GO
+
 
 SELECT
     Q.Numero,
@@ -177,6 +218,8 @@ WHERE NOT EXISTS (
     FROM Reserva R
     WHERE R.CodQuarto = Q.CodQuarto
 );
+GO
+
 
 SELECT
     H.Nome,
@@ -188,10 +231,12 @@ INNER JOIN Pagamento P
     ON R.CodReserva = P.CodReserva
 WHERE H.Nome = 'João da Silva'
 GROUP BY H.Nome;
+GO
+
 
 SELECT COUNT(DISTINCT CodHospede) AS QuantidadeHospedes
 FROM Reserva
 WHERE DtEntrada >= '2026-02-01'
   AND DtEntrada < '2026-03-01'
   AND DATEDIFF(DAY, DtEntrada, DtSaida) > 5;
-
+GO
