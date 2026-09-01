@@ -1,4 +1,4 @@
-CREATE TABLE Professores (
+CREATE TABLE Professoress (
 codProf int constraint pk_codProf primary key identity(1,1), 
 nome varchar(80) NOT NULL, 
 RG numeric(12) UNIQUE, 
@@ -10,3 +10,7 @@ categoria varchar (15) check(categoria in ('auxiliar', 'assistente','adjunto',
 'titular')),
 salario money check (salario>=500)
 )
+
+SELECT * FROM Professoress
+INSERT INTO Professoress (RG, sexo, idade, titulacao, categoria, salario)
+VALUES (877987997, 'M', 25, 'GRADUACAO', 'EXPERIENCIA', 350, 'JOAO')
