@@ -1,143 +1,76 @@
--- 1. CREATE TABLE TB_CLIENTE (
+-- -- Exercício 01:
+-- 1. Criar uma tabela com o nome TB_CLIENTE. A tabela deverá conter a seguinte estrutura:
+--  a. Um atributo código do tipo inteiro;
+--  b. Um atributo nome do tipo cadeia de caracteres de tamanho 50;
+--  c. Um atributo telefone do tipo cadeia de caracteres de tamanho 20;
+--  d. Um atributo tipo_cliente do tipo cadeia de caracteres de tamanho 20;
+--  e. Um atributo dt_cadastro do tipo data e hora;
+--  f. Um atributo nr_dependentes do tipo inteiro.
+--  g. Todos os atributos da tabela devem ser obrigatórios.
 
-codigo INT NOT NULL,
+-- 2. A tabela acima deve conter as seguintes restrições:
+--  a. O atributo código representa a chave primária da tabela;
+--  b. O atributo dt_cadastro (data do cadastro) deve ter como valor padrão (default) a data e hora atual do sistema;
+--  c. O atributo tipo_cliente deve ser “Titular” ou “Dependente”;
+--  d. O atributo nr_dependentes deve ser um inteiro maior ou igual a 0 e <= a 3.
 
-nome VARCHAR(50) NOT NULL,
+CREATE TABLE TB_CLIENTE (
+    codCliente INT CONSTRAINT pk_cliente PRIMARY KEY IDENTITY(1, 1),
+    nome VARCHAR(50) NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    tipo_cliente VARCHAR(20) CONSTRAINT tipos_clientes CHECK(tipo_cliente IN ('Titular', 'Dependente')) NOT NULL,
+    dt_cadastro DATETIME CONSTRAINT dt_cadastro_cliente DEFAULT GETDATE() NOT NULL,
+    nr_dependentes INT CONSTRAINT nr_dependentes_cliente CHECK(nr_dependentes BETWEEN 0 AND 3) NOT NULL
+)
 
-telefone VARCHAR(20) NOT NULL,
+-- 3. Utilizar comandos SQL de inserção e atualização que tentem verificar e violar as -- restrições acima.
 
-tipo_cliente VARCHAR(20) NOT NULL,
+INSERT INTO TB_CLIENTE VALUES
+    ('Igor', 'xx99xxxxx', 'titular', 4);
+-- viola o tipo_cliente e nr_dependentes
 
-dt_cadastro DATETIME NOT NULL DEFAULT GETDATE(),
+-- Exercício 02:
+-- Dado o seguinte esquema relacional:
+--     Marca (id_marca, nome)
+--     Produto (id_pro, nome_produto, id_marca, estoque, preço)
+--     Pedido(id_pedido, data_pedido, valor_desc, valor_total)
+--     ItemPedido (id_pedido, id_pro, qtde, vl_unit)
+-- em que:
+--     id_marca – identificador único da marca
+--     nome – nome completo da marca, também único
+--     id_pro- inteiro identificador de produto
+--     nome_produto – não necessariamente único, descreve o produto, p.ex. “borracha”
+--     estoque – inteiro que define a quantidade em estoque (sempre positivo)
+--     preço – preço de venda do produto
+--     id_pedido – inteiro identificador do pedido
+--     data – data do pedido
 
-nr_dependentes INT NOT NULL,
-
-CONSTRAINT PK_TB_CLIENTE PRIMARY KEY (codigo),
-
-CONSTRAINT CK_TB_CLIENTE_TIPO CHECK (tipo_cliente IN ('Titular', 'Dependente')),
-
-CONSTRAINT CK_TB_CLIENTE_DEPENDENTES CHECK (nr_dependentes >= 0 AND nr_dependentes <= 3) );
-
-GO
-
--- 2. INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes)
-
-VALUES (1, 'João da Silva', '16999999999', 'Titular', 2);
-
- GO
-
-INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes)
-
-VALUES (2, 'Maria Oliveira', '16988888888', 'Dependente', 0); GO SELECT * FROM TB_CLIENTE;
-
-GO
-
--- 3. INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes)
-
-VALUES (1, 'Pedro Santos', '16977777777', 'Titular', 1);
-
- GO
-
-INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes)
-
-VALUES (3, NULL, '16966666666', 'Titular', 1);
-
-GO
-
-INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes) VALUES (4, 'Ana Costa', '16955555555', 'Funcionario', 1);
-
-GO
-
-INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes) VALUES (5, 'Lucas Almeida', '16944444444', 'Titular', 4); 
-
-GO
-
-INSERT INTO TB_CLIENTE (codigo, nome, telefone, tipo_cliente, nr_dependentes) VALUES (6, 'Juliana Martins', '16933333333', 'Titular', -1);
-
-GO
-
-UPDATE TB_CLIENTE SET tipo_cliente = 'Funcionario' WHERE codigo = 1;
-
-GO
-
-UPDATE TB_CLIENTE SET nr_dependentes = 5 WHERE codigo = 1;
-
-GO
-
-UPDATE TB_CLIENTE SET nr_dependentes = -2 WHERE codigo = 1;
-
- GO
-
-UPDATE TB_CLIENTE SET codigo = 2 WHERE codigo = 1;
-
-GO
-
----EXERCICIO 2---
-
--- 1.
-
+-- Defina em SQL as seguintes restrições de integridade:
+-- 1. O nome_produto é de preenchimento obrigatório.
 ALTER TABLE Produto
-ADD CONSTRAINT CK_Produto_NomeObrigatorio
-CHECK (nome_produto IS NOT NULL);
-GO
+ALTER column nome_produto VARCHAR(100) NOT NULL;
 
-
--- 2.
-
+-- 2. Todos os valores da marca na relação Produto existem na relação Marca em id_marca.
 ALTER TABLE Produto
-ADD CONSTRAINT FK_Produto_Marca
-FOREIGN KEY (id_marca)
-REFERENCES Marca(id_marca);
-GO
+ADD CONSTRAINT fk_produto_marca FOREIGN KEY (id_marca) REFERENCES Marca(id_marca);
 
-
--- 3.
-
+-- 3. O id_pro é um inteiro com 4 dígitos.
 ALTER TABLE Produto
-ADD CONSTRAINT CK_Produto_IdPro
-CHECK (id_pro BETWEEN 1000 AND 9999);
-GO
+ALTER column id_pro NUMERIC(4);
 
-
--- 4.
-
+-- 4. A data do pedido é por padrão a data atual.
 ALTER TABLE Pedido
 ADD CONSTRAINT DF_Pedido_Data
-DEFAULT GETDATE() FOR data;
-GO
+DEFAULT GETDATE() FOR data_pedido;
 
-
--- 5.
-
+-- 5. No mesmo pedido, não pode haver mais de uma venda do mesmo produto.
 ALTER TABLE ItemPedido
-ADD CONSTRAINT PK_ItemPedido
-PRIMARY KEY (id_pedido, id_pro);
-GO
+ADD CONSTRAINT UC_Pedido_Produto UNIQUE (id_pedido, id_pro);
 
-
--- 6.
-
+-- 6. Se o preço de um item vendido é superior a 1000 então a quantidade vendida tem de ser menor que 100.
 ALTER TABLE ItemPedido
-ADD CONSTRAINT CK_ItemPedido_PrecoQuantidade
-CHECK (vl_unit <= 1000 OR qtde < 100);
-GO
+ADD constraint item_pedido_vl_unit_qtde CHECK (vl_unit <= 1000 OR qtde < 100);
 
-
--- 7.
-
-CREATE TRIGGER TR_Produto_Estoque
-ON Produto
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM Produto
-        WHERE estoque * preço > 250000
-    )
-    BEGIN
-        RAISERROR ('O valor total do estoque não pode exceder 250.000.', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
-GO
+-- 7. O valor total do Estoque de cada Produto não pode exceder os 250.000 (considerando o preço de venda).
+ALTER TABLE Produto
+ADD CONSTRAINT x CHECK((estoque * preco) <= 250000);
