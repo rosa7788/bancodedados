@@ -26,7 +26,7 @@ CREATE TABLE TB_CLIENTE (
 -- 3. Utilizar comandos SQL de inserção e atualização que tentem verificar e violar as -- restrições acima.
 
 INSERT INTO TB_CLIENTE VALUES
-    ('Igor', 'xx99xxxxx', 'titular', 4);
+    ('Rosa', 'xx99xxxxx', 'titular', 4);
 -- viola o tipo_cliente e nr_dependentes
 
 -- Exercício 02:
