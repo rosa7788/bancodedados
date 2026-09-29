@@ -191,6 +191,38 @@ SELECT TOP 3
 FROM jogador
 ORDER BY salario ASC;
 
+-- ============================================================
+-- 10. GROUP BY
+-- ============================================================
+
+-- Quantidade de jogadores por posição
+SELECT 
+    posicao,
+    COUNT(*) as quantidade
+FROM jogador
+GROUP BY posicao;
+
+-- Média salarial por posição
+SELECT
+    posicao,
+    AVG(salario) as mediaSalarial
+FROM jogador
+GROUP BY posicao;
+
+-- Várias funções por posição
+SELECT
+    posicao,
+    COUNT(*) AS quantidade,
+    MIN(salario) AS menorSalario,
+    MAX(salario) AS maiorSalario,
+    AVG(salario) AS mediaSalarial
+FROM Jogador
+GROUP BY posicao;
+
+-- LISTES OS NOMES DOS JOGADORES QUE TÊM SALÁRIO ACIMA DA MÉDIA
+SELECT nome, salario
+FROM jogador
+WHERE salario > (SELECT AVG(salario) FROM jogador); -- subselect
 
 
 
