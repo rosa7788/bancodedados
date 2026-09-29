@@ -171,5 +171,28 @@ SELECT
     ISNULL(apelido, 'Sem Apelido') AS Apelido
 FROM jogador;
 
+---=============================================
+---9. TOP N
+--top limita a quantidade de registros
+--ORDER BY define quais serão os primeiros
+---================================================
+
+--- 5 maiores salarios
+SELECT TOP 5
+    nome,
+    salario
+FROM jogador
+ORDER BY salario DESC;
+
+--- 3 menores salarios
+SELECT TOP 3
+    nome,
+    salario
+FROM jogador
+ORDER BY salario ASC;
+
+
+
+
 
 
