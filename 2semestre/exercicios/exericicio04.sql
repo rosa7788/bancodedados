@@ -87,3 +87,20 @@ FROM Func
 --6 liste o nome, o nome do departamento e a função de todos os funcionarios
 SELECT f.PrimeiroNome, d.Nome AS Depto, f.funcao
 FROM Func f INNER JOIN depto d ON f.codDepto = d.codDepto
+
+-- 7. Liste todos os departamentos com seus respectivos gerentes
+SELECT
+    f.PrimerioNome AS gerente,
+    d.Nome AS departamento
+FROM Depto d
+INNER JOIN Func f
+ON d.CodigoFuncionarioGerente = f.CodFunc;
+
+-- 8. Liste o valor da folha de pagamento de cada departamento (nome)
+SELECT
+    d.Nome AS departamento,
+    SUM(f.Salario) AS folhaPagamento
+FROM Func f
+INNER JOIN Depto d
+ON f.CodDepto = d.CodDepto
+GROUP BY d.Nome;
