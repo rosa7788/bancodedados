@@ -122,3 +122,32 @@ WHERE CodDepto IN (SELECT CodDepto
 SELECT COUNT(*) AS QtdeFunc
 FROM func;
 
+--11. Liste o salário pmédio pago pela empresa
+SELECT AVG(salario) AS MediaSalarial
+FROM func;
+
+--12. Liste a quantidade de funcionários que trabalham em cada departamento
+SELECT d.nome AS Depto, COUNT(*) AS QtdeFuncionarios
+FROM  fun f INNER JOIN depto d 
+    on f.codDepto = d.codDepto
+GROUP BY d.nome;
+
+--12+1. Liste o menor salário pago pela empresa em cada departamento
+SELECT d.nome AS Depto, MIN(salario) AS MenorSalDepto
+FROM func F INNER JOIN depto d ON f.codDepto = d.codDepto
+GROUP BY d.nome;
+
+
+--14. Liste o nome completo de todos os funcionários que não tenham segundo nome
+SELECT PrimeiroNome, UltimoNome
+FROM func 
+WHERE ISNULL(segundoNome, '')=''
+
+--14.a = Liste os nomes dos funcionários e os nomes de seus gerentes
+SELECT F.PrimeiroNome AS funcionario,
+    g.PrimeiroNome AS gerente
+FROM Func f 
+INNER JOIN Depto d 
+ON f.codDepto = d.CodDepto
+INNER JOIN Func g 
+ON f.CodFun = g.CodigoFuncionarioGerente
