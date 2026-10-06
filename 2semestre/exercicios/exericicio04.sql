@@ -104,3 +104,21 @@ FROM Func f
 INNER JOIN Depto d
 ON f.CodDepto = d.CodDepto
 GROUP BY d.Nome;
+
+--9. Liste os departamentos dos funcionarios que tem a funçaõ de supervisor
+SELECT  d.nome as Depto, PrimeiroNome, funcao
+FROM Func f INNER JOIN depto d ON f.codDepto = d.codDepto
+WHERE funcao = 'SUPERVISOR'
+
+--com subselect
+SELECT nome
+FROM depto 
+WHERE CodDepto IN (SELECT CodDepto
+                    FROM Func 
+                    WHERE Funcao = 'SUPERVISOR')
+
+
+--10. Liste a quantidade de funcionarios desta empresa
+SELECT COUNT(*) AS QtdeFunc
+FROM func;
+
