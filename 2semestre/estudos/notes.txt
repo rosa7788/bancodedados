@@ -1,0 +1,8 @@
+---PRINCIPAIS CONSTRAINTS---
+• PRIMARY KEY (Chave Primária): Identifica de forma única cada linha da tabela e não aceita valores nulos nem duplicados (ex: CPF do cliente).
+• FOREIGN KEY (Chave Estrangeira): Garante a integridade referencial entre duas tabelas, assegurando que o valor inserido exista na tabela de origem.
+• NOT NULL: Impede que uma coluna fique vazia, exigindo que o usuário sempre informe um valor.
+• UNIQUE: Garante que não haja valores repetidos em uma coluna específica (ex: e-mail ou placa de carro).
+• CHECK: Limita os valores que podem ser aceitos em uma coluna com base em uma condição lógica (ex: IDADE >= 18 ou salário maior que zero).
+• DEFAULT: Define um valor padrão automático para a coluna caso nenhum valor seja informado durante o cadastro (ex: data atual).
+
