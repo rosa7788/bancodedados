@@ -208,8 +208,23 @@ HAVING AVG(tempo_minutos) > 120
 
 
 --3 Liste o nome dos partiicpantes e a quantidade de pratos preaprados por cada um. Exiba somente os participantes que tenham preparado mais de 2 pratos.
-SELECT PA.nome AS nomeParticip, PR.quant AS quantidadePratos
-FROM participantes
-WHERE PA.nome = '3 pratos'
+SELECT PA.nome AS nomeParticip, COUNT(PR.id_prato) AS quantidadePratos
+FROM participantes PA
+INNER JOIN pratos PR
+  ON PA.id_partic = PR.id_partic
+GROUP BY  PA.nome
+HAVING (PR.id_prato) > 2;
 
 --4 Liste o nome de cada ingrediente e a soma total das quantidades utilizadas nos pratos.Exiba o nome do ingrediente, a unidade de medida e a quantidade total utilizada, ordenando do ingrediente mais utilizado para o menos utilizado. Considere as quantidde separadamente por unidade de medida.
+
+SELECT 
+ I.nome AS  nomeIngrediente,
+ I.unidade_medida, 
+ SUM(IP.quantidade) AS quantidadeTotal
+ FROM ingrediente I 
+    INNER JOIN ingredientes_pratos IP
+        ON I.id_ingrediente = IP.id_ingrediente
+GROUP BY 
+I.nome, 
+I.unidade_medida
+  ORDER BY quantidadeTotal DESC;
