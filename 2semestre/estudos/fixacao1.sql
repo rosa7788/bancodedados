@@ -228,3 +228,4 @@ GROUP BY
 I.nome, 
 I.unidade_medida
   ORDER BY quantidadeTotal DESC;
+6
