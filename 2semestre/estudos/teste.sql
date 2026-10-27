@@ -1,145 +1,223 @@
-
-CREATE DATABASE BdVestibular
-GO
-USE BdVestibular
+-- 1
+CREATE DATABASE BdVestibular;
 GO
 
--- 1) e 2)
-
-CREATE TABLE cursos (
-    codCur       INT         CONSTRAINT PK_codCur PRIMARY KEY IDENTITY (1,1),
-    nome         VARCHAR(90) NOT NULL,
-    cargaHoraria INT         NOT NULL,
-    nroVagas     INT         NOT NULL,                       
-    CONSTRAINT CK_carga CHECK (cargaHoraria IN (2800, 3600)),
-    CONSTRAINT CK_vagas CHECK (nroVagas >= 0)
-)
+USE BdVestibular;
 GO
 
-CREATE TABLE candidato (
-    codCan       INT         CONSTRAINT PK_codCan PRIMARY KEY IDENTITY (1,1),
-    nome         VARCHAR(90) NOT NULL,
-    cpf          CHAR(11)    NOT NULL CONSTRAINT UQ_cpf UNIQUE,  
-    rg           VARCHAR(20) NOT NULL,
-    endereco     VARCHAR(90) NOT NULL,                           
-    dtCadastro   DATE        NOT NULL CONSTRAINT DF_dtCadastro DEFAULT (CAST(GETDATE() AS DATE)),
-    situacao     VARCHAR(30) NULL,
-    CONSTRAINT CK_sitCandidato
-        CHECK (situacao IN ('Aprovado', 'Reprovado', 'Aprovado em 2ª chamada'))
-)
+CREATE TABLE Curso (
+    CodCur INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Nome VARCHAR(100) NOT NULL,
+    CargaHoraria INT NOT NULL,
+    NroVagas INT NOT NULL
+);
+
+CREATE TABLE Candidato (
+    CodCan INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Nome VARCHAR(100) NOT NULL,
+    Endereco VARCHAR(200) NULL,
+    CPF CHAR(11) NOT NULL UNIQUE,
+    RG VARCHAR(20) NULL,
+    Situacao VARCHAR(30) NULL,
+    DataCadastro DATETIME NOT NULL
+);
+
+CREATE TABLE Inscricao (
+    CodIns INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    CodCan INT NOT NULL,
+    CodCur1Opcao INT NOT NULL,
+    CodCur2Opcao INT NOT NULL,
+    Nota DECIMAL(5,2) NULL,
+    AnoInscr INT NOT NULL,
+    DataInscricao DATETIME NOT NULL DEFAULT GETDATE(),
+    Situacao VARCHAR(25) NOT NULL,
+
+    FOREIGN KEY (CodCan) REFERENCES Candidato(CodCan),
+    FOREIGN KEY (CodCur1Opcao) REFERENCES Curso(CodCur),
+    FOREIGN KEY (CodCur2Opcao) REFERENCES Curso(CodCur)
+);
+
+CREATE TABLE Pagamento (
+    CodPag INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    CodIns INT NOT NULL UNIQUE,
+    dtRegistro DATE NOT NULL DEFAULT GETDATE(),
+    dtVencto DATE NULL,
+    dtPagto DATE NULL,
+    VlPago DECIMAL(10,2) NULL,
+    VlJurosMulta DECIMAL(10,2) NULL,
+
+    FOREIGN KEY (CodIns) REFERENCES Inscricao(CodIns)
+);
 GO
 
-CREATE TABLE inscricao (
-    codIns       INT          CONSTRAINT PK_codIns PRIMARY KEY IDENTITY (1,1),
-    codCan       INT          NOT NULL,                      
-    codCurOpcao1 INT          NOT NULL,                    
-    dataIns      DATETIME     NOT NULL CONSTRAINT DF_dataIns DEFAULT (GETDATE()),
-    anoIns       AS YEAR(dataIns) PERSISTED,                 
-    situacao     VARCHAR(30)  NOT NULL CONSTRAINT DF_sitInscricao DEFAULT ('Aguardando pagamento'),
 
-    CONSTRAINT FK_ins_candidato FOREIGN KEY (codCan)       REFERENCES candidato (codCan),
-    CONSTRAINT FK_ins_curso1    FOREIGN KEY (codCurOpcao1) REFERENCES cursos (codCur),
-    CONSTRAINT FK_ins_curso2    FOREIGN KEY (codCurOpcao2) REFERENCES cursos (codCur),
-    CONSTRAINT CK_sitInscricao
-        CHECK (situacao IN ('Aguardando pagamento', 'Cancelado', 'Encerrado', 'Pago')),
-    CONSTRAINT UQ_candidato_ano UNIQUE (codCan, anoIns),
-    CONSTRAINT CK_opcoes CHECK (codCurOpcao1 <> codCurOpcao2),
-    CONSTRAINT CK_nota   CHECK (nota IS NULL OR nota BETWEEN 0 AND 10)
-)
+-- 2
+ALTER TABLE Curso
+ADD CONSTRAINT CK_Curso_CargaHoraria
+CHECK (CargaHoraria IN (2800, 3600));
+
+ALTER TABLE Candidato
+ADD CONSTRAINT CK_Candidato_Situacao
+CHECK (Situacao IN ('Aprovado', 'Reprovado', 'Aprovado em 2ª chamada'));
+
+ALTER TABLE Inscricao
+ADD CONSTRAINT CK_Inscricao_Situacao
+CHECK (Situacao IN ('Aguardando pagamento', 'Cancelado', 'Encerrado', 'Pago'));
+
+ALTER TABLE Inscricao
+ADD CONSTRAINT DF_Inscricao_Situacao
+DEFAULT 'Aguardando pagamento' FOR Situacao;
+
+ALTER TABLE Pagamento
+DROP COLUMN dtVencto;
+
+ALTER TABLE Pagamento
+ADD dtVencto AS DATEADD(DAY, 10, dtRegistro) PERSISTED;
+
+ALTER TABLE Inscricao
+ADD CONSTRAINT UQ_Inscricao_Candidato_Ano
+UNIQUE (CodCan, AnoInscr);
+
+ALTER TABLE Inscricao
+ADD CONSTRAINT CK_Inscricao_Opcoes
+CHECK (CodCur1Opcao <> CodCur2Opcao);
+
+ALTER TABLE Candidato
+ADD CONSTRAINT DF_Candidato_DataCadastro
+DEFAULT GETDATE() FOR DataCadastro;
 GO
 
-CREATE TABLE pagamento (
-    codPag       INT   CONSTRAINT PK_codPag PRIMARY KEY IDENTITY (1,1),
-    codIns       INT   NOT NULL,                        
-    VlPago       MONEY NULL,
-    VlValorJuros MONEY NULL,
-    dtRegistro   DATETIME NOT NULL CONSTRAINT DF_dtRegistro DEFAULT (GETDATE()),
-    dtVencimento AS DATEADD(DAY, 10, dtRegistro) PERSISTED,
-    dtPagto      DATETIME NULL,
 
-    CONSTRAINT FK_pag_inscricao FOREIGN KEY (codIns) REFERENCES inscricao (codIns),
-    CONSTRAINT UQ_pag_inscricao UNIQUE (codIns)            
-)
-GO
-
--- 3)
-CREATE PROCEDURE sp_realizarInscricao
-    @codCan INT, @codCurOpcao1 INT, @codCurOpcao2 INT
+-- 3
+CREATE PROCEDURE sp_NovaInscricao
+    @CodCan INT,
+    @CodCur1Opcao INT,
+    @CodCur2Opcao INT
 AS
 BEGIN
-    SET NOCOUNT ON
-    SET XACT_ABORT ON
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @CodIns INT;
+
     BEGIN TRY
-        BEGIN TRANSACTION
+        BEGIN TRANSACTION;
 
-        INSERT INTO inscricao (codCan, codCurOpcao1, codCurOpcao2)
-        VALUES (@codCan, @codCurOpcao1, @codCurOpcao2)
+        INSERT INTO Inscricao (
+            CodCan, CodCur1Opcao, CodCur2Opcao, AnoInscr
+        )
+        VALUES (
+            @CodCan, @CodCur1Opcao, @CodCur2Opcao, YEAR(GETDATE())
+        );
 
-        INSERT INTO pagamento (codIns) VALUES (SCOPE_IDENTITY())
+        SET @CodIns = SCOPE_IDENTITY();
 
-        COMMIT TRANSACTION
+        INSERT INTO Pagamento (CodIns)
+        VALUES (@CodIns);
+
+        COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
-        THROW
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
     END CATCH
-END
+END;
 GO
 
--- 4) 
-CREATE PROCEDURE sp_registrarNota
-    @codIns INT, @nota DECIMAL(5,2), @situacao VARCHAR(30)
+EXEC sp_NovaInscricao
+    @CodCan = 1,
+    @CodCur1Opcao = 1,
+    @CodCur2Opcao = 3;
+GO
+
+
+-- 4
+CREATE PROCEDURE sp_RegistrarResultado
+    @CodIns INT,
+    @Nota DECIMAL(5,2),
+    @Situacao VARCHAR(30)
 AS
 BEGIN
-    SET NOCOUNT ON
-    SET XACT_ABORT ON
-    BEGIN TRY
-        BEGIN TRANSACTION
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
-        UPDATE inscricao SET nota = @nota WHERE codIns = @codIns
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        UPDATE Inscricao
+        SET Nota = @Nota
+        WHERE CodIns = @CodIns;
+
         IF @@ROWCOUNT = 0
-            THROW 50001, 'Inscrição não encontrada.', 1
+            THROW 50001, 'Inscricao nao encontrada.', 1;
 
-        UPDATE c SET c.situacao = @situacao
-          FROM candidato c
-          JOIN inscricao i ON i.codCan = c.codCan
-         WHERE i.codIns = @codIns
+        UPDATE Candidato
+        SET Situacao = @Situacao
+        WHERE CodCan = (
+            SELECT CodCan
+            FROM Inscricao
+            WHERE CodIns = @CodIns
+        );
 
-        COMMIT TRANSACTION
+        COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
-        THROW
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
     END CATCH
-END
+END;
 GO
 
--- 5)
-CREATE PROCEDURE sp_registrarPagamento
-    @codIns INT, @vlPago MONEY, @vlJuros MONEY = 0, @dtPagto DATETIME = NULL
+EXEC sp_RegistrarResultado
+    @CodIns = 1,
+    @Nota = 8.5,
+    @Situacao = 'Aprovado';
+GO
+
+
+-- 5
+CREATE PROCEDURE sp_RegistrarPagamento
+    @CodIns INT,
+    @VlPago DECIMAL(10,2),
+    @VlJurosMulta DECIMAL(10,2) = 0,
+    @dtPagto DATE = NULL
 AS
 BEGIN
-    SET NOCOUNT ON
-    SET XACT_ABORT ON
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    SET @dtPagto = ISNULL(@dtPagto, CAST(GETDATE() AS DATE));
+
     BEGIN TRY
-        BEGIN TRANSACTION
+        BEGIN TRANSACTION;
 
-        UPDATE pagamento
-           SET VlPago = @vlPago,
-               VlValorJuros = @vlJuros,
-               dtPagto = ISNULL(@dtPagto, GETDATE())
-         WHERE codIns = @codIns
+        UPDATE Pagamento
+        SET dtPagto = @dtPagto,
+            VlPago = @VlPago,
+            VlJurosMulta = @VlJurosMulta
+        WHERE CodIns = @CodIns
+          AND dtPagto IS NULL;
+
         IF @@ROWCOUNT = 0
-            THROW 50002, 'Pagamento não encontrado para a inscrição.', 1
+            THROW 50002, 'Boleto nao encontrado ou ja pago.', 1;
 
-        UPDATE inscricao SET situacao = 'Pago' WHERE codIns = @codIns
+        UPDATE Inscricao
+        SET Situacao = 'Pago'
+        WHERE CodIns = @CodIns;
 
-        COMMIT TRANSACTION
+        COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
-        THROW
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+        THROW;
     END CATCH
-END
+END;
 GO
 
+EXEC sp_RegistrarPagamento
+    @CodIns = 1,
+    @VlPago = 150.00;
+GO
