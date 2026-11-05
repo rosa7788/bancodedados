@@ -27,7 +27,7 @@ CREATE TABLE ingrediente(
 
 CREATE TABLE prato(
     id INT CONSTRAINT PK_PRATO PRIMARY KEY IDENTITY(1,1),
-    nome VARCHARR(80),
+    nome VARCHAR(80),
     descricao VARCHAR(300),
     dificuldade VARCHAR(80) CONSTRAINT DF_DIF DEFAULT('MÉDIA'),
     id_partic INT CONSTRAINT FK_PART FOREIGN KEY REFERENCES participante(id),
