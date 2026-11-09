@@ -6,3 +6,128 @@
 • CHECK: Limita os valores que podem ser aceitos em uma coluna com base em uma condição lógica (ex: IDADE >= 18 ou salário maior que zero).
 • DEFAULT: Define um valor padrão automático para a coluna caso nenhum valor seja informado durante o cadastro (ex: data atual).
 
+ANOTACOES: CARDINALIDADE E CHAVES ESTRANGEIRAS (FK)
+===================================================
+
+REGRA DE OURO
+- A chave estrangeira (FK) fica sempre no lado "muitos" (N) da relacao.
+- A FK e a coluna que aponta para a chave primaria (PK) da outra tabela.
+- Quem "tem muitos" guarda a referencia de quem "tem um".
+
+
+1. RELACAO 1:N (UM PARA MUITOS)
+-------------------------------
+- E a mais comum.
+- A FK vai na tabela do lado N.
+- Exemplo: um Curso tem varias Inscricoes; cada Inscricao pertence a um unico Curso.
+- Ordem de criacao: primeiro a tabela do lado 1 (Curso), depois a do lado N (Inscricao).
+- Nao da para referenciar uma tabela que ainda nao existe.
+
+  CREATE TABLE Curso (
+      IdCurso INT PRIMARY KEY,
+      Nome    VARCHAR(100) NOT NULL
+  );
+
+  CREATE TABLE Inscricao (
+      IdInscricao   INT PRIMARY KEY,
+      DataInscricao DATE NOT NULL,
+      IdCurso       INT NOT NULL,   -- FK no lado N
+      CONSTRAINT FK_Inscricao_Curso
+          FOREIGN KEY (IdCurso) REFERENCES Curso(IdCurso)
+  );
+
+
+2. RELACAO 1:1 (UM PARA UM)
+---------------------------
+- A FK pode ficar em qualquer um dos lados.
+- A FK deve ser UNIQUE para garantir que so exista um registro relacionado.
+- Variacao: a propria FK pode ser a PK (tambem garante o 1:1).
+- Qual lado recebe a FK? Geralmente a tabela que depende da outra
+  (a que nao faz sentido existir sozinha) ou a de participacao opcional.
+- Exemplo: uma Inscricao tem um unico Pagamento.
+
+  CREATE TABLE Pagamento (
+      IdPagamento INT PRIMARY KEY,
+      Valor       DECIMAL(10,2) NOT NULL,
+      IdInscricao INT NOT NULL UNIQUE,   -- UNIQUE garante o 1:1
+      CONSTRAINT FK_Pagamento_Inscricao
+          FOREIGN KEY (IdInscricao) REFERENCES Inscricao(IdInscricao)
+  );
+
+
+3. RELACAO N:N (MUITOS PARA MUITOS)
+-----------------------------------
+- NAO existe FK direta entre as duas tabelas.
+- E preciso criar uma tabela associativa (de juncao).
+- A tabela associativa recebe as duas FKs e vira duas relacoes 1:N.
+- A PK da associativa e composta pelas duas FKs (evita duplicidade).
+- Atributos da relacao (ex.: Nota, DataMatricula) ficam na tabela associativa.
+- Ordem de criacao: as duas tabelas "fortes" primeiro, a associativa por ultimo.
+- Exemplo: um Aluno cursa varias Disciplinas; uma Disciplina tem varios Alunos.
+
+  CREATE TABLE Aluno (
+      IdAluno INT PRIMARY KEY,
+      Nome    VARCHAR(100) NOT NULL
+  );
+
+  CREATE TABLE Disciplina (
+      IdDisciplina INT PRIMARY KEY,
+      Nome         VARCHAR(100) NOT NULL
+  );
+
+  CREATE TABLE AlunoDisciplina (
+      IdAluno      INT NOT NULL,
+      IdDisciplina INT NOT NULL,
+      Nota         DECIMAL(4,2) NULL,
+      CONSTRAINT PK_AlunoDisciplina
+          PRIMARY KEY (IdAluno, IdDisciplina),
+      CONSTRAINT FK_AD_Aluno
+          FOREIGN KEY (IdAluno) REFERENCES Aluno(IdAluno),
+      CONSTRAINT FK_AD_Disciplina
+          FOREIGN KEY (IdDisciplina) REFERENCES Disciplina(IdDisciplina)
+  );
+
+
+RESUMO RAPIDO
+-------------
+- 1:N -> FK na tabela do lado N. Criar primeiro a tabela do lado 1.
+- 1:1 -> FK em um dos lados (geralmente o dependente), com UNIQUE (ou FK = PK).
+- N:N -> tabela associativa com 2 FKs e PK composta.
+
+
+OPCIONALIDADE (OBRIGATORIA x OPCIONAL)
+--------------------------------------
+- A cardinalidade minima define se a FK aceita NULL.
+- Participacao obrigatoria (minimo 1): FK NOT NULL.
+- Participacao opcional (minimo 0): FK NULL.
+- Exemplo: se toda Inscricao deve ter um Curso -> IdCurso INT NOT NULL.
+  Se o curso puder ser definido depois -> IdCurso INT NULL.
+
+
+DICAS E BOAS PRATICAS
+---------------------
+1. Pergunte "quantos?" nos dois sentidos.
+   Curso tem quantas Inscricoes? Muitas. Inscricao tem quantos Cursos? Um.
+   Logo e 1:N e a FK fica em Inscricao.
+2. O tipo da FK deve ser igual ao tipo da PK referenciada (mesmo INT, mesmo tamanho).
+3. Nomeie as constraints (FK_Tabela_TabelaReferenciada).
+   Facilita achar o erro e dropar depois.
+4. A ordem importa:
+   - criar: pai antes do filho;
+   - excluir: filho antes do pai;
+   - inserir dados: pai antes do filho.
+5. Acoes referenciais (ON DELETE / ON UPDATE):
+   - define o que acontece com os filhos ao apagar o pai;
+   - opcoes: NO ACTION, CASCADE, SET NULL;
+   - usar CASCADE com cuidado.
+6. Autorrelacionamento: a FK aponta para a propria tabela.
+   Ex.: Funcionario.IdGerente -> Funcionario.IdFuncionario.
+
+
+COMO LER UM DIAGRAMA ER (NOTACAO PE DE GALINHA)
+-----------------------------------------------
+- O lado com o "pe de galinha" (tres tracinhos) e o lado N.
+  E nele que entra a FK.
+- Traco simples (|) = obrigatorio (minimo 1).
+- Circulo (O) = opcional (minimo 0).
+
