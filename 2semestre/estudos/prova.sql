@@ -57,6 +57,7 @@ WHERE
 uf = 'SP' AND
 status = 'ATIVO' AND
 data_nasc < '1995/01/01'
+GO
 
 --4 
 CREATE VIEW viewEx4 
@@ -64,6 +65,7 @@ AS
 SELECT nome, profissao, cidade, uf
 FROM participante
 WHERE status = 'ATIVO'
+GO
 
 --5
 CREATE VIEW viewEx5
@@ -72,6 +74,7 @@ SELECT P.nome AS nomePrato, I.nome AS nomeIngred, categoria,
 quantidade, unidade_medida
 FROM participante AS P INNER JOIN prato AS PR ON P.id = PR.id_partic
 WHERE dificuldade = 'DIFÍCIL'
+GO
 
 --6
 CREATE VIEW viewEx6
@@ -80,6 +83,7 @@ AS
     quantidade, unidade_medida
     FROM ingrediente AS I INNER JOIN utiliza AS U ON I.id = U.id_ingrediente
                         INNER JOIN prato AS P ON P.id = U.id_prato
+GO
 
 --7
 SELECT PA.nome AS nomeParticip, PR.nome AS nomePrato, PO.nome AS nomeProva
